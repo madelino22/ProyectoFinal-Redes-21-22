@@ -16,10 +16,14 @@ public:
     bool addFicha(int columna, int jugador, bool& final);
 
     void render();
+
+    void reset();
 private:
     Tablero(int ncolumnas, int nfilas, int num, Texture* f, Texture* p1t, Texture* p2t);
 
-    bool checkGame(int columna, int fila);
+    bool checkGame(int columna, int fila, int jugador);
+
+    int recursion(int columna, int fila, int movX, int movY, int jugador);
 
     vector<vector<int>> tablero;
 

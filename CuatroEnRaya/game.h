@@ -31,9 +31,14 @@ private:
 
     Tablero* tablero;
 
+	bool esMiTurno;
+	void cambiaJugador();
+	int jugador;
+	void cambiaTurnos();
+	int turnos;
 
 public:
-	Game();
+	Game(int _jugador);
 	~Game();
 	void run();
 	void render();
@@ -42,9 +47,10 @@ public:
 
 
 int main(int argc, char **argv){
-    Game game = Game();
+    Game game = Game(1);
 
     game.run();
 
 	return 0;
 }
+

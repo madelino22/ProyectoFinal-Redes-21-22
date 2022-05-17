@@ -1,6 +1,6 @@
 #include "game.h"
 
-Game::Game(){
+Game::Game(int _jugador){
     SDL_Init(SDL_INIT_EVERYTHING);
 	window_ = SDL_CreateWindow("CUATRO EN RAYA", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WIN_WIDTH, WIN_HEIGHT, SDL_WINDOW_SHOWN);
 	renderer_ = SDL_CreateRenderer(window_, -1, SDL_RENDERER_ACCELERATED);
@@ -14,7 +14,9 @@ Game::Game(){
     cout << "Creando tablero" << std::endl;
     tablero = new Tablero(texturas_[fichaVacia], texturas_[fichaJugador1], texturas_[fichaJugador2]);
 
-    run();
+    jugador = _jugador;
+    esMiTurno = jugador == 1;
+    turnos = 0;
 }
 
 Game::~Game(){
@@ -32,13 +34,14 @@ void Game::run(){
     render();
 
     while(!final){
-
-        if (handleEvents()) {
-            render();
-        }
-        
+        if (esMiTurno){
+            if (handleEvents()) {
+                cambiaTurnos();
+                //cambiaJugador();
+                render();
+            }
+        }    
     }
-    
 }
 	
 
@@ -62,25 +65,25 @@ bool Game::handleEvents(){
             switch (evt.key.keysym.sym)
             {
                 case SDLK_1:
-                    handled = tablero->addFicha(0, 1, final);
+                    handled = tablero->addFicha(0, jugador, final);
                     break;
                 case SDLK_2:
-                    handled = tablero->addFicha(1, 1, final);
+                    handled = tablero->addFicha(1, jugador, final);
                     break;
                 case SDLK_3:
-                    handled = tablero->addFicha(2, 1, final);
+                    handled = tablero->addFicha(2, jugador, final);
                     break;
                 case SDLK_4:
-                    handled = tablero->addFicha(3, 1, final);
+                    handled = tablero->addFicha(3, jugador, final);
                     break;
                 case SDLK_5:
-                    handled = tablero->addFicha(4, 1, final);
+                    handled = tablero->addFicha(4, jugador, final);
                     break;
                 case SDLK_6:
-                    handled = tablero->addFicha(5, 1, final);
+                    handled = tablero->addFicha(5, jugador, final);
                     break;
                 case SDLK_7:
-                    handled = tablero->addFicha(6, 1, final);
+                    handled = tablero->addFicha(6, jugador, final);
                     break;
 
                 default: 
@@ -96,3 +99,16 @@ bool Game::handleEvents(){
     return handled;
 }
 
+void Game::cambiaJugador(){
+    if (jugador == 1) jugador++;
+    else jugador--;
+}
+
+void Game::cambiaTurnos(){
+    if (!final) turnos++;
+    
+    if (turnos >= 21){
+        tablero->reset();
+        turnos = 0;
+    }
+}
