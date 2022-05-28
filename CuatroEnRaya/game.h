@@ -1,3 +1,5 @@
+#ifndef GAME_H
+#define GAME_H
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <iostream>
@@ -46,11 +48,12 @@ public:
 };
 
 
-int main(int argc, char **argv){
-    Game game = Game(1);
+// int main(int argc, char **argv){
+//     Game game = Game(1);
 
-    game.run();
+//     game.run();
 
-	return 0;
-}
+// 	return 0;
+// }
 
+#endif

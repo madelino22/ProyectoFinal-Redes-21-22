@@ -17,6 +17,8 @@ Game::Game(int _jugador){
     jugador = _jugador;
     esMiTurno = jugador == 1;
     turnos = 0;
+
+    run();
 }
 
 Game::~Game(){

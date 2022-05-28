@@ -1,3 +1,5 @@
+#ifndef TABLERO_H
+#define TABLERO_H
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <vector>
@@ -33,3 +35,5 @@ private:
     Texture* fichaP1Tex;
     Texture* fichaP2Tex;
 };
+
+#endif
