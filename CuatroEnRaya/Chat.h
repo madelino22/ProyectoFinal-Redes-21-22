@@ -42,7 +42,8 @@ public:
         LOGOUT  = 2,
         STARTGAMEPLAYER1 = 3,
         STARTGAMEPLAYER2 = 4,
-        ENDGAME = 5
+        ENDGAME = 5,
+        CLOSE = 6
     };
 
     ChatMessage(){};
@@ -128,7 +129,7 @@ public:
      * @param n nick del usuario
      */
     ChatClient(const char * s, const char * p, const char * n):socket(s, p),
-        nick(n){};
+        nick(n), quieroSeguirJugando(true), jugando(false), game(nullptr){};
 
     /**
      *  Envía el mensaje de login al servidor
@@ -167,6 +168,9 @@ private:
     std::string nick;
 
     Game* game;
+
+    bool jugando;
+    bool quieroSeguirJugando;
 };
 
 #endif

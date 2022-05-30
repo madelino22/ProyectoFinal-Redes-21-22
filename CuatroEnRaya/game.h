@@ -24,6 +24,7 @@ private:
 	Texture* texturas_[NUM_TEXTURES];
 	
     bool final = false;
+	bool seguirJugando = true;
 
 	struct TexturesAtributes {
 		string nombre;
@@ -50,10 +51,10 @@ private:
 public:
 	Game(int _jugador, Socket* p);
 	~Game();
-	void run();
+	bool run();
 	void render();
 	void handleEvents();
-	void recibirMensaje();
+	bool recibirMensaje();
 };
 
 #endif

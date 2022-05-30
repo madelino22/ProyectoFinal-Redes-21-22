@@ -21,6 +21,8 @@ Game::Game(int _jugador, Socket* p){
     jugador = _jugador;
     esMiTurno = jugador == 1;
     turnos = 0;
+
+    seguirJugando = true;
 }
 
 Game::~Game(){
@@ -33,16 +35,20 @@ Game::~Game(){
 	SDL_Quit();
 }
 
-void Game::run(){
+bool Game::run(){
     cout << "running game" << std::endl;
     //render();
 
     while(!exit){
         render();
         handleEvents();
+
+        //cout << "playing" << std::endl;
     }
 
     cout << "exit game" << std::endl;
+
+    return seguirJugando;
 }
 	
 
@@ -135,12 +141,12 @@ void Game::pasaTurno(){
     cambiaTurnos();  
 }
 
-void Game::recibirMensaje(){
+bool Game::recibirMensaje(){
     ChatMessage em;
     playerS->recv(em);
     std::cout << "Se ha recibido un mensaje" << std::endl;
 
-    if (em.type != ChatMessage::MESSAGE && em.type != ChatMessage::ENDGAME) std::cout << "MAAAAAAAAAAAAAAAAAAAAAAL" << std::endl;
+    if (em.type != ChatMessage::MESSAGE && em.type != ChatMessage::ENDGAME && em.type != ChatMessage::CLOSE) std::cout << "MAAAAAAAAAAAAAAAAAAAAAAL" << std::endl;
     else if (em.type == ChatMessage::MESSAGE){
         if (!esMiTurno){
             tablero->addFicha(em.pos, jugadorContrario(), final);
@@ -151,11 +157,17 @@ void Game::recibirMensaje(){
             esMiTurno = true;
         }
     }
-    else //ENDGAME
+    else if (em.type == ChatMessage::ENDGAME) //ENDGAME
     {
         exit = true;
         SDL_Quit();
+
+        return false;
     }
+    else //CLOSE
+        return false;
+
+    return true;
         
 }
 
@@ -165,6 +177,10 @@ void Game::checkGame(int j){
 }
 
 void Game::cerrarJuego(){
+    seguirJugando = false;
+
+    std::cout << "TE HAS SALIDO" << std::endl;
+
     std::string nick;
     int pos;
 

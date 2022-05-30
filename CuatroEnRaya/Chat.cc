@@ -232,16 +232,21 @@ void ChatClient::input_thread()
 #include "game.h"
 
 void ChatClient::gameRecieve(){
-    while (true)
-        if (game != nullptr) game->recibirMensaje();
+    while (quieroSeguirJugando){
+        //std::cout << "entra while gameRecieve" << std::endl;
+        if (jugando && game != nullptr){
+            jugando = game->recibirMensaje();
+        }
+    }
 }
 
 
 
 void ChatClient::net_thread()
 {
-    while(true)
+    while(quieroSeguirJugando)
     {
+        //std::cout << "entra while net_thread" << std::endl;
         //Recibir mensaje
         ChatMessage em;
         socket.recv(em);
@@ -250,17 +255,16 @@ void ChatClient::net_thread()
             break;
 
         else if (em.type == ChatMessage::STARTGAMEPLAYER1){
+            jugando = true;
             game = new Game(1, &socket);
-            game->run();
+            quieroSeguirJugando = game->run();
             game = nullptr;
         }
         else if (em.type == ChatMessage::STARTGAMEPLAYER2){
+            jugando = true;
             game = new Game(2, &socket);
-            game->run();
+            quieroSeguirJugando = game->run();
             game = nullptr;
         }
-
-        //Escribir "nombre: mensaje"
-        //printf("%s: %s\n", em.nick.c_str(), &em.pos);
     }
 }

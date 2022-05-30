@@ -50,6 +50,12 @@ int Partida::deleteGame(int jugador){
 
         server->send(em, *player2);
 
+
+        em.type = ChatMessage::CLOSE;
+
+
+        server->send(em, *player1);
+
         return 2;
     }
     else{
@@ -58,6 +64,12 @@ int Partida::deleteGame(int jugador){
         em.type = ChatMessage::ENDGAME;
 
         server->send(em, *player1);
+        //server->send(em, *player2);
+
+        em.type = ChatMessage::CLOSE;
+
+
+        server->send(em, *player2);
 
         return 1;
     }
