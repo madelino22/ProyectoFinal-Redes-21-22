@@ -13,6 +13,8 @@ const int WIN_WIDTH = 800;
 const int WIN_HEIGHT = 600;
 const int NUM_TEXTURES = 3;
 
+class Socket;
+
 class Game{
     
 private:
@@ -20,7 +22,7 @@ private:
 	SDL_Renderer* renderer_ = nullptr;
 	bool exit = false;
 	Texture* texturas_[NUM_TEXTURES];
-
+	
     bool final = false;
 
 	struct TexturesAtributes {
@@ -34,26 +36,24 @@ private:
     Tablero* tablero;
 
 	bool esMiTurno;
-	void cambiaJugador();
+	int jugadorContrario();
 	int jugador;
 	void cambiaTurnos();
 	int turnos;
+	bool fichaPuesta = false;
+
+	Socket* playerS;
+	void pasaTurno();
+	void checkGame(int j);
+	void cerrarJuego();
 
 public:
-	Game(int _jugador);
+	Game(int _jugador, Socket* p);
 	~Game();
 	void run();
 	void render();
-	bool handleEvents();
+	void handleEvents();
+	void recibirMensaje();
 };
-
-
-// int main(int argc, char **argv){
-//     Game game = Game(1);
-
-//     game.run();
-
-// 	return 0;
-// }
 
 #endif

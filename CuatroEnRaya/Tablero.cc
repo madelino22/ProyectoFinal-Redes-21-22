@@ -11,9 +11,16 @@ Tablero::Tablero(int ncolumnas, int nfilas, int num, Texture* f, Texture* p1t, T
 
     fichaRect.h = 90;
     fichaRect.w = 90;
+
+    fichaAnterior.first = -1;
+    fichaAnterior.second = -1;
 }
 
 bool Tablero::addFicha(int columna, int jugador, bool& final){
+    if (fichaAnterior.first != -1){
+        tablero[fichaAnterior.first][fichaAnterior.second] = 0;
+    }
+
     bool encontrado = false;
     vector<int> thisColum = tablero[columna];
     int i = 0;
@@ -26,10 +33,12 @@ bool Tablero::addFicha(int columna, int jugador, bool& final){
     
     if (i == 0) return false;
 
-    tablero[columna][i - 1] = jugador;
+    fichaAnterior.first = columna;
+    fichaAnterior.second = i - 1;
 
-    final = checkGame(columna, i - 1, jugador);
-    if (final) cout << "Ha ganado el jugador " << jugador << std::endl;
+    tablero[columna][fichaAnterior.second] = jugador;
+
+    //--------------------------------------------------------------
     return true;
 }
 
@@ -47,11 +56,11 @@ void Tablero::render(){
     }
 }
 
-bool Tablero::checkGame(int columna, int fila, int jugador){
-    bool horizontal = recursion(columna, fila, -1, 0, jugador) + recursion(columna, fila, 1, 0, jugador) >= 3;
-    bool vertical = recursion(columna, fila, 0, 1, jugador) + recursion(columna, fila, 0, -1, jugador) >= 3;
-    bool diagonalPpal = recursion(columna, fila, 1, -1, jugador) + recursion(columna, fila, -1, 1, jugador) >= 3;
-    bool diagonalSec = recursion(columna, fila, 1, 1, jugador) + recursion(columna, fila, -1, -1, jugador) >= 3;
+bool Tablero::checkGame(int jugador){
+    bool horizontal = recursion(fichaAnterior.first, fichaAnterior.second, -1, 0, jugador) + recursion(fichaAnterior.first, fichaAnterior.second, 1, 0, jugador) >= 3;
+    bool vertical = recursion(fichaAnterior.first, fichaAnterior.second, 0, 1, jugador) + recursion(fichaAnterior.first, fichaAnterior.second, 0, -1, jugador) >= 3;
+    bool diagonalPpal = recursion(fichaAnterior.first, fichaAnterior.second, 1, -1, jugador) + recursion(fichaAnterior.first, fichaAnterior.second, -1, 1, jugador) >= 3;
+    bool diagonalSec = recursion(fichaAnterior.first, fichaAnterior.second, 1, 1, jugador) + recursion(fichaAnterior.first, fichaAnterior.second, -1, -1, jugador) >= 3;
 
     return horizontal || vertical || diagonalPpal || diagonalSec;
 }
@@ -69,4 +78,15 @@ void Tablero::reset(){
             tablero[i][j] = 0;
         }
     }
+}
+
+int Tablero::pasaTurno(bool& final){
+    int ficha = fichaAnterior.first;
+    resetAnterior();
+    return ficha;
+}
+
+void Tablero::resetAnterior(){
+    fichaAnterior.first = -1;
+    fichaAnterior.second = -1;
 }

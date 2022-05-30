@@ -6,6 +6,7 @@
 #include <string.h>
 #include <vector>
 #include <memory>
+#include <queue>
 
 #include "Serializable.h"
 #include "Socket.h"
@@ -46,7 +47,7 @@ public:
 
     ChatMessage(){};
 
-    ChatMessage(const std::string& n, const std::string& m):nick(n),message(m){};
+    ChatMessage(const std::string& n, const int p):nick(n),pos(p){};
 
     void to_bin();
 
@@ -55,7 +56,7 @@ public:
     uint8_t type;
 
     std::string nick;
-    std::string message;
+    int pos;
 };
 
 // -----------------------------------------------------------------------------
@@ -76,6 +77,7 @@ public:
         for (int i = 0; i < MAX_GAMES; ++i) {
             partidasEmpezadas.push_back(false);
             partidas.push_back(nullptr);
+            partidasIDS.push_back(std::pair<int,int>(-1, -1));
         }
     };
 
@@ -86,13 +88,15 @@ public:
     void do_messages();
 
 private:
-    void emparejar(Socket* s1, Socket* s2);
+    int emparejar(Socket* s1, int p1ind, Socket* s2, int p2ind);
 
     /**
      *  Lista de clientes conectados al servidor de Chat, representados por
      *  su socket
      */
     std::vector<std::unique_ptr<Socket>> clients;
+    std::queue<std::pair<Socket*, int>> matchmaking;
+
 
     /**
      * Socket del servidor
@@ -102,8 +106,11 @@ private:
     std::vector<bool> partidasEmpezadas;
 
     std::vector<Partida*> partidas;
+    std::vector<std::pair<int, int>> partidasIDS;
 
-    bool NuevaPartida(Socket* p1, Socket* p2);
+    void comprobarMatchmaking();
+
+    int NuevaPartida(Socket* p1, int p1ind, Socket* p2, int p2ind);
 };
 
 // -----------------------------------------------------------------------------
@@ -144,6 +151,8 @@ public:
      *  en STDOUT
      */
     void net_thread();
+
+    void gameRecieve();
 
 private:
 

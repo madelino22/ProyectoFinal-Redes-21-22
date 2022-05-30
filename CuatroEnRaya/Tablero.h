@@ -20,15 +20,21 @@ public:
     void render();
 
     void reset();
+
+    bool checkGame(int jugador);
+
+    int pasaTurno(bool& final);
+    void resetAnterior();
 private:
     Tablero(int ncolumnas, int nfilas, int num, Texture* f, Texture* p1t, Texture* p2t);
 
-    bool checkGame(int columna, int fila, int jugador);
+    
 
     int recursion(int columna, int fila, int movX, int movY, int jugador);
 
     vector<vector<int>> tablero;
 
+    std::pair<int, int> fichaAnterior;
 
     SDL_Rect fichaRect;
     Texture* fichaVaciaTex;
