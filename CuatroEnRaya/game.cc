@@ -2,11 +2,13 @@
 #include "Socket.h"
 #include "Chat.h"
 
-Game::Game(int _jugador, Socket* p){
+Game::Game(int _jugador, Socket* p, std::string n){
     playerS = p;
+    myNick = n;
 
     SDL_Init(SDL_INIT_EVERYTHING);
-	window_ = SDL_CreateWindow("CUATRO EN RAYA", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WIN_WIDTH, WIN_HEIGHT, SDL_WINDOW_SHOWN);
+    std::string title = "CUATRO EN RAYA: " + myNick;
+	window_ = SDL_CreateWindow(title.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WIN_WIDTH, WIN_HEIGHT, SDL_WINDOW_SHOWN);
 	renderer_ = SDL_CreateRenderer(window_, -1, SDL_RENDERER_ACCELERATED);
 	if (window_ == nullptr || renderer_ == nullptr) throw "Error loading the SDL window or renderer";
 
@@ -126,9 +128,8 @@ void Game::pasaTurno(){
     checkGame(jugador);
 
     int pos = tablero->pasaTurno(final);
-    std::string nick;
 
-    ChatMessage em(nick, pos);
+    ChatMessage em(myNick, pos);
     em.type = ChatMessage::MESSAGE;
 
     playerS->send(em, *playerS);
@@ -149,6 +150,7 @@ bool Game::recibirMensaje(){
     if (em.type != ChatMessage::MESSAGE && em.type != ChatMessage::ENDGAME && em.type != ChatMessage::CLOSE) std::cout << "MAAAAAAAAAAAAAAAAAAAAAAL" << std::endl;
     else if (em.type == ChatMessage::MESSAGE){
         if (!esMiTurno){
+            if (otherNick == "") otherNick = em.nick;
             tablero->addFicha(em.pos, jugadorContrario(), final);
             checkGame(jugadorContrario());
 
@@ -157,29 +159,28 @@ bool Game::recibirMensaje(){
             esMiTurno = true;
         }
     }
-    else if (em.type == ChatMessage::ENDGAME) //ENDGAME
+    else if (em.type == ChatMessage::ENDGAME || em.type == ChatMessage::CLOSE) //ENDGAME
     {
         exit = true;
-        SDL_Quit();
 
         return false;
     }
-    else //CLOSE
-        return false;
-
     return true;
         
 }
 
 void Game::checkGame(int j){
     final = tablero->checkGame(j);
-    if (final) std::cout << "Ha ganado el jugador " << j << "." << std::endl;
+    if (final) {
+        if (j == jugador) std::cout << "Ha ganado " << myNick << "." << std::endl;
+        else std::cout << "Ha ganado " << otherNick << "." << std::endl;
+    }
 }
 
 void Game::cerrarJuego(){
     seguirJugando = false;
 
-    std::cout << "TE HAS SALIDO" << std::endl;
+    std::cout << "Te has salido del juego." << std::endl;
 
     std::string nick;
     int pos;
@@ -188,8 +189,4 @@ void Game::cerrarJuego(){
     em.type = ChatMessage::ENDGAME;
 
     playerS->send(em, *playerS);
-
-    exit = true;
-    SDL_Quit();
-    delete this;
 }

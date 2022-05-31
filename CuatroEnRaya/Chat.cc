@@ -67,12 +67,29 @@ void ChatServer::do_messages()
         socket.recv(msg, udpSocket);
         // LOGIN: Añadir al vector clients
         if(msg.type == ChatMessage::MessageType::LOGIN){
-            std::unique_ptr<Socket> u_ptr(udpSocket);
-            clients.push_back(std::move(u_ptr)); 
-            matchmaking.push(std::pair<Socket*,int>(udpSocket, clients.size()-1));
-            printf("%s login.\n", msg.nick.c_str());
+            if (nClientes < 11){
+                std::unique_ptr<Socket> u_ptr(udpSocket);
+                clients.push_back(std::move(u_ptr)); 
+                matchmaking.push(std::pair<Socket*,int>(udpSocket, clients.size()-1));
+                printf("%s login.\n", msg.nick.c_str());
 
-            comprobarMatchmaking();
+                partidasIDS.push_back(std::pair<int,int>(-1, -1));
+
+                nClientes++;
+
+                comprobarMatchmaking();
+            }
+            else {
+                std::string nick;
+                int p;
+
+                ChatMessage em(nick, p);
+                em.type = ChatMessage::MessageType::SERVERFULL;
+
+                socket.send(em, *udpSocket);
+            }
+
+            
         }
         // LOGOUT: Eliminar del vector clients
         else if(msg.type == ChatMessage::MessageType::LOGOUT){
@@ -80,36 +97,11 @@ void ChatServer::do_messages()
             while(it != clients.end() && !(*(*it).get() == *udpSocket)) it++;
             clients.erase(it);
             printf("%s logout.\n", msg.nick.c_str());
+
+            nClientes--;
         }
-        // MESSAGE: Reenviar mensaje a los demás clientes
+        // MESSAGE: Ficha del cuatro en raya puesta.
         else if(msg.type == ChatMessage::MessageType::MESSAGE){
-            // bool chatSeparados = true;
-
-            // if (!chatSeparados){
-            //     for(int i=0; i<clients.size(); ++i){
-            //         if(!(*(clients[i].get()) == *udpSocket))
-            //             socket.send(msg, (*clients[i].get()));
-            //     }
-                
-            // }
-                
-            // else {
-            //     int i = 0; bool encontrado = false;
-            //     while (i < clients.size() && !encontrado){
-            //         encontrado = *udpSocket == *(clients[i].get());
-            //         if (!encontrado) i++;
-            //     }
-
-            //     if (!encontrado) std::cout << "Socket no encontrado en la lista de clientes size " << clients.size() << std::endl;
-                    
-            //     else
-            //     {
-            //         if (i % 2 == 0 && i + 1 < clients.size()) socket.send(msg, (*clients[i + 1].get()));
-            //         else if (i % 2 == 1) socket.send(msg, (*clients[i - 1].get()));
-            //         else printf("Se ha enviado un mensaje desde un Socket que está solo\n");
-            //     }  
-            // }
-            // printf("%s send message.\n", msg.nick.c_str());   
 
             int i = 0; bool encontrado = false;
             while (i < clients.size() && !encontrado){
@@ -117,8 +109,8 @@ void ChatServer::do_messages()
                 if (!encontrado) i++;
             }  
 
-            partidas[partidasIDS[i].first]->addFicha(partidasIDS[i].second, msg.pos);
-            std::cout << "En la partida " << partidasIDS[i].first << " se ha puesto una ficha en la pos " << msg.pos << std::endl;
+            partidas[partidasIDS[i].first]->addFicha(partidasIDS[i].second, msg.pos, msg.nick);
+            std::cout << "En la partida " << partidasIDS[i].first << ", " << msg.nick <<" ha puesto una ficha en la pos " << msg.pos << std::endl;
         }
         else if (msg.type == ChatMessage::MessageType::ENDGAME){
             //CERRAR EL JUEGO
@@ -127,6 +119,8 @@ void ChatServer::do_messages()
                 encontrado = *udpSocket == *(clients[i].get());
                 if (!encontrado) i++;
             }  
+
+            nClientes--;
 
             int numJugador = partidas[partidasIDS[i].first]->deleteGame(partidasIDS[i].second);
             partidasEmpezadas[partidasIDS[i].first] = false;
@@ -237,6 +231,8 @@ void ChatClient::gameRecieve(){
         if (jugando && game != nullptr){
             jugando = game->recibirMensaje();
         }
+
+        //std::cout << "GR Quiero seguir jugando: " << quieroSeguirJugando << std::endl;
     }
 }
 
@@ -256,15 +252,25 @@ void ChatClient::net_thread()
 
         else if (em.type == ChatMessage::STARTGAMEPLAYER1){
             jugando = true;
-            game = new Game(1, &socket);
+            game = new Game(1, &socket, nick);
             quieroSeguirJugando = game->run();
+            delete game;
             game = nullptr;
+
+            std::cout << "NT Quiero seguir jugando: " << quieroSeguirJugando << std::endl;
         }
         else if (em.type == ChatMessage::STARTGAMEPLAYER2){
             jugando = true;
-            game = new Game(2, &socket);
+            game = new Game(2, &socket, nick);
             quieroSeguirJugando = game->run();
+            delete game;
             game = nullptr;
+
+            std::cout << "NT Quiero seguir jugando: " << quieroSeguirJugando << std::endl;
+        }
+        else if (em.type == ChatMessage::SERVERFULL){
+            std::cout << "El servidor está lleno. Vuelve a intentarlo más tarde." << std::endl;
+            quieroSeguirJugando = false;
         }
     }
 }

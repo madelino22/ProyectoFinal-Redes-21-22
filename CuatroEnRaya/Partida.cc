@@ -19,8 +19,7 @@ Partida::Partida(Socket* p1, int iP1, Socket* p2, int iP2, Socket* s, int _id): 
     server->send(em2, *player2);
 }
 
-void Partida::addFicha(int jugador, int pos){
-    std::string nick = "";
+void Partida::addFicha(int jugador, int pos, std::string nick){
     //Mensaje el OTRO jugador para que sepa qué ficha ha añadido su oponente.
     if (jugador == 1){
         //mensaje a player2 sobre lo que ha movido el jugador 1

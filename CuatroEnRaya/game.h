@@ -5,6 +5,7 @@
 #include <iostream>
 #include "Tablero.h"
 #include "Texture.h"
+#include <string>
 
 using namespace std;
 
@@ -48,8 +49,11 @@ private:
 	void checkGame(int j);
 	void cerrarJuego();
 
+	std::string myNick;
+	std::string otherNick = "";
+
 public:
-	Game(int _jugador, Socket* p);
+	Game(int _jugador, Socket* p, std::string n);
 	~Game();
 	bool run();
 	void render();

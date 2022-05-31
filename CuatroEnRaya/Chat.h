@@ -43,7 +43,8 @@ public:
         STARTGAMEPLAYER1 = 3,
         STARTGAMEPLAYER2 = 4,
         ENDGAME = 5,
-        CLOSE = 6
+        CLOSE = 6,
+        SERVERFULL = 7
     };
 
     ChatMessage(){};
@@ -67,6 +68,7 @@ public:
  *  Clase para el servidor de chat
  */
 static const int MAX_GAMES = 5;
+static const int MAX_CLIENTS = 11;
 class Partida;
 
 class ChatServer
@@ -78,8 +80,10 @@ public:
         for (int i = 0; i < MAX_GAMES; ++i) {
             partidasEmpezadas.push_back(false);
             partidas.push_back(nullptr);
-            partidasIDS.push_back(std::pair<int,int>(-1, -1));
+            
         }
+
+        nClientes = 0;
     };
 
     /**
@@ -96,6 +100,7 @@ private:
      *  su socket
      */
     std::vector<std::unique_ptr<Socket>> clients;
+    int nClientes;
     std::queue<std::pair<Socket*, int>> matchmaking;
 
 
