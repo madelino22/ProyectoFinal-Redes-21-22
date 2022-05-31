@@ -1,6 +1,6 @@
 #include "game.h"
 #include "Socket.h"
-#include "Chat.h"
+#include "Matchmaking.h"
 
 Game::Game(int _jugador, Socket* p, std::string n){
     playerS = p;
@@ -37,30 +37,30 @@ Game::~Game(){
 	SDL_Quit();
 }
 
+//Bucle principal del juego. Devuelve si quieres seguir jugando o no (dependiendo de si eres tú quien se ha salido del juego)
 bool Game::run(){
-    cout << "running game" << std::endl;
+    cout << "Abriendo Cuatro en Raya." << std::endl;
     //render();
 
     while(!exit){
         render();
         handleEvents();
-
         //cout << "playing" << std::endl;
     }
 
-    cout << "exit game" << std::endl;
+    cout << "Cerrando Cuatro en Raya" << std::endl;
 
     return seguirJugando;
 }
 	
-
+//Renderización
 void Game::render(){
     SDL_RenderClear(renderer_);
     tablero->render();
     SDL_RenderPresent(renderer_);
 }
 
-
+//Manejador de input
 void Game::handleEvents(){
     SDL_Event evt;
 	while (SDL_PollEvent(&evt) && !exit) {
@@ -110,11 +110,13 @@ void Game::handleEvents(){
 	}
 }
 
+//Devuelve el nº del jugador contrario (1 ó 2)
 int Game::jugadorContrario(){
     if (jugador == 1) return jugador + 1;
     else return jugador - 1;
 }
 
+//Actualiza la variable de cantidad de turnos. Si se ha llegado a 42 reinicia el juego (se ha llenado el tablero)
 void Game::cambiaTurnos(){
     if (!final) turnos++;
     
@@ -124,13 +126,14 @@ void Game::cambiaTurnos(){
     }
 }
 
+//Pasas el turno al jugador contrario enviando un mensaje con la posición de tu nueva ficha.
 void Game::pasaTurno(){
     checkGame(jugador);
 
     int pos = tablero->pasaTurno(final);
 
-    ChatMessage em(myNick, pos);
-    em.type = ChatMessage::MESSAGE;
+    GameMessage em(myNick, pos);
+    em.type = GameMessage::MESSAGE;
 
     playerS->send(em, *playerS);
 
@@ -142,13 +145,17 @@ void Game::pasaTurno(){
     cambiaTurnos();  
 }
 
+//Método que espera el mensaje del oponente, ya que es su turno
 bool Game::recibirMensaje(){
-    ChatMessage em;
+    GameMessage em;
     playerS->recv(em);
-    std::cout << "Se ha recibido un mensaje" << std::endl;
+    //std::cout << "Se ha recibido un mensaje" << std::endl;
 
-    if (em.type != ChatMessage::MESSAGE && em.type != ChatMessage::ENDGAME && em.type != ChatMessage::CLOSE) std::cout << "MAAAAAAAAAAAAAAAAAAAAAAL" << std::endl;
-    else if (em.type == ChatMessage::MESSAGE){
+    if (em.type != GameMessage::MESSAGE && em.type != GameMessage::ENDGAME && em.type != GameMessage::CLOSE) 
+        std::cout << "FALLO EN LOS MENSAJES: no debería de haber llegado este tipo de mensaje aquí" << std::endl;
+
+    else if (em.type == GameMessage::MESSAGE) //FIcha puesta por el adversario
+    {
         if (!esMiTurno){
             if (otherNick == "") otherNick = em.nick;
             tablero->addFicha(em.pos, jugadorContrario(), final);
@@ -159,34 +166,35 @@ bool Game::recibirMensaje(){
             esMiTurno = true;
         }
     }
-    else if (em.type == ChatMessage::ENDGAME || em.type == ChatMessage::CLOSE) //ENDGAME
-    {
+    else if (em.type == GameMessage::ENDGAME || em.type == GameMessage::CLOSE)
+    //Recibes ENDGAME si el oponente ha cerrado el juego y CLOSE si eres tú quien ha decidido dejar de jugar.
+    {     
         exit = true;
-
         return false;
     }
     return true;
         
 }
 
+//Comprueba si el jugador j ha ganado la partida al colocar su última ficha
 void Game::checkGame(int j){
     final = tablero->checkGame(j);
     if (final) {
-        if (j == jugador) std::cout << "Ha ganado " << myNick << "." << std::endl;
-        else std::cout << "Ha ganado " << otherNick << "." << std::endl;
+        if (j == jugador) std::cout << "¡Has ganado! ¡Enhorabuena " << myNick << "!" << std::endl;
+        else std::cout << "Has perdido. Ha ganado " << otherNick << "." << std::endl;
     }
 }
 
+//Método llamado cuando tú quieres salir del juego, enviando un mensaje de ENDGAME al adversario
 void Game::cerrarJuego(){
     seguirJugando = false;
 
     std::cout << "Te has salido del juego." << std::endl;
 
-    std::string nick;
     int pos;
 
-    ChatMessage em(nick, pos);
-    em.type = ChatMessage::ENDGAME;
+    GameMessage em(myNick, pos);
+    em.type = GameMessage::ENDGAME;
 
     playerS->send(em, *playerS);
 }

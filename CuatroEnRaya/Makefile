@@ -1,23 +1,23 @@
 C=g++
 CFLAGS=-g -std=c++11 -lSDL2 -lSDL2_image -I.
-DEPS = Socket.h Chat.h Tablero.h Texture.h game.h Partida.h
-OBJ = Socket.o Chat.o Tablero.o Texture.o game.o Partida.o
+DEPS = Socket.h Matchmaking.h Tablero.h Texture.h game.h Partida.h
+OBJ = Socket.o Matchmaking.o Tablero.o Texture.o game.o Partida.o
 LIBS=-lpthread
 
 %.o: %.cc $(DEPS)
 	$(CC) -g -c -o $@ $< $(CFLAGS)
 
-all: cs cc
+all: server client
 
-cs: $(OBJ) ChatServer.o
+server: $(OBJ) GameServer.o
 	g++ -o $@ $^ $(CFLAGS) $(LIBS)
 
-cc: $(OBJ) ChatClient.o
+client: $(OBJ) GameClient.o
 	g++ -o $@ $^ $(CFLAGS) $(LIBS)
 
 
 .PHONY: clean
 
 clean:
-	rm -f *.o cs cc
+	rm -f *.o server client
 
