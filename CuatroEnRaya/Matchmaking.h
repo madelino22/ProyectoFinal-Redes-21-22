@@ -33,7 +33,7 @@ class Game;
 class GameMessage: public Serializable
 {
 public:
-    static const size_t MESSAGE_SIZE = sizeof(char) * 88 + sizeof(uint8_t);
+    static const size_t MESSAGE_SIZE = sizeof(uint8_t) + sizeof(char) * 8 + sizeof(int);
 
     enum MessageType
     {
